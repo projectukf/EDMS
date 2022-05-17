@@ -1,0 +1,227 @@
+{% extends 'base/gov_base.html' %}
+
+{% block title %}Product List{% endblock title %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <div class="breadcrumbs-inner">
+        <div class="row m-0">
+            <div class="col-sm-4">
+                <div class="page-header float-left">
+                    <div class="page-title">
+                        <h1>Dashboard</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <div class="page-header float-right">
+                    <div class="page-title">
+                        <ol class="breadcrumb text-right">
+                            <li><a href="#">Dashboard</a></li>
+                            <li><a href="#">Product</a></li>
+                            <li class="active">List</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="box-title">Product List </h4>
+            </div>
+            <div class="card-body--">
+                <div class="table-stats order-table ov-h">
+                    <table class="table ">
+                        <thead>
+                            <tr>
+                                <th class="serial">#</th>
+                                <th>Name</th>
+                                <th>Qty</th>
+                                <th>Exp Time(Days)</th>
+                                <th>STATUS</th>
+                                <th>Total Price</th>
+                                <th></th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if products %}
+                            {% for product in products %}
+                            <tr>
+                                <td class="serial">{{ forloop.counter }}</td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.qty }}</td>
+                                <td>{{ product.exp_time }}</td>
+                                <td>{{ product.status }}</td>
+                                <td>Rs {{ product.price }}</td>
+                                {% if user == True %}
+                                <td class="">
+                                    <button type="button" class="btn btn-info approve_btn" data-toggle="modal" data-target="#approvemodal" id="approve_btn" value="{{ product.id }}">Approve</button>
+                                    <button type="button" class="btn btn-info reject_btn" data-toggle="modal" data-target="#rejectmodal" id="reject_btn" value="{{ product.id }}">Reject</button>
+                                   
+                                
+                                
+                            </td>
+                                
+                                {% else %}
+                                {% if product.status == "APPROVED" %}
+                                <td><a href="#">
+                                    <form action="{% url 'qr' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ product.name }}">
+                                        <input type="hidden" name="qty" value="{{ product.qty }}">
+                                        <input type="hidden" name="exp_date" value="{{ product.exp_time }}">
+                                        <input type="hidden" name="created_date" value="{{ product.created_date }}">
+                                        <button type= "submit" >get qrcode</button>
+                                     </form>
+
+                                </td>
+                                {% else %}
+                                <td></td>
+                                {% endif %}
+                                {% endif %}
+                                <td>{{ product.created_date }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                                <tr><td>No Product Data</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    
+                        
+                </div> <!-- /.table-stats -->
+            </div>
+            
+        </div> <!-- /.card -->
+        <!-- <div class="form-group">
+            {% if user == True %}
+                
+                <button type="button" class="btn btn-info float-right" onclick="myFunction()" id="update">Update Product</button>
+                
+            {% endif %}
+         </div> -->
+    </div>  <!-- /.col-lg-8 -->
+    <!--FOR Approve--> 
+    <div class="modal" tabindex="-1" role="dialog" id="approvemodal">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            
+
+            <div class="modal-body">
+              <p>Are you sure want to Approve?.</p>
+              <input type="text" hidden class="product_id_approve" id="product_id_approve" name="product_id_approve" value="">
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="approve" class="btn btn-primary approve">Save changes</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!--FOR Reject--> 
+    <div class="modal" tabindex="-1" role="dialog" id="rejectmodal">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            
+
+            <div class="modal-body">
+              <p>Are you sure want to Reject?.</p>
+              <input type="text" hidden class="product_id_reject" id="product_id_reject" name="product_id_reject" value="">
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="reject" class="btn btn-primary reject">Save changes</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+</div>
+
+<script>
+   $(document).ready(function() {
+
+    $(".approve_btn").click(function(){
+        // console.log($(this).val())
+        txt = document.getElementById("product_id_approve").value =$(this).val()
+        
+    })
+    $(".reject_btn").click(function(){
+        // console.log($(this).val())reject_btn
+        txt = document.getElementById("product_id_reject").value =$(this).val()
+        
+    })
+
+
+    $(".approve").click(function() {
+        var token = '{{csrf_token}}'
+        var product_id = $("#product_id_approve").val()
+        var satus = "APPROVED"
+        fetch("{% url 'product-status' %}", {
+            method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',"X-CSRFToken":token
+                },
+                body: JSON.stringify({
+                    "status":satus,
+                    "product_id":product_id ,
+                    
+                                })
+                }).then(function(res){ return res.json(); })
+                .then(function(data){ 
+
+                    if(data.status == "true"){
+                        location.reload();
+                    }
+
+                })
+
+
+       
+    })
+
+
+    $(".reject").click(function() {
+        var token = '{{csrf_token}}'
+        var product_id = $("#product_id_reject").val()
+        var satus = "REJECTED"
+        fetch("{% url 'product-status' %}", {
+            method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',"X-CSRFToken":token
+                },
+                body: JSON.stringify({
+                    "status":satus,
+                    "product_id":product_id ,
+                    
+                                })
+                }).then(function(res){ return res.json(); })
+                .then(function(data){ 
+
+                    if(data.status == "true"){
+                        location.reload();
+                    }
+
+                })
+
+
+       
+    })
+
+   })
+</script>
+
+
+        </body>
+{% endblock content %}

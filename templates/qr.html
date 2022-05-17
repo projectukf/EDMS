@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>tut</title>
+   </head>
+   <body>
+      {% for qr in qr_code %}
+      <img src="{{qr.image.url}}"/><br>
+      {%endfor%}
+   </body>
+</html>

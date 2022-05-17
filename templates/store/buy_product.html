@@ -1,0 +1,135 @@
+{% extends 'base/buyer_base.html' %}
+
+{% block title %}Create Product{% endblock title %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <div class="breadcrumbs-inner">
+        <div class="row m-0">
+            <div class="col-sm-4">
+                <div class="page-header float-left">
+                    <div class="page-title">
+                        <h1>Dashboard</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <div class="page-header float-right">
+                    <div class="page-title">
+                        <ol class="breadcrumb text-right">
+                            <li><a href="#">Dashboard</a></li>
+                            <li><a href="#">Product</a></li>
+                            <li class="active">Create</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock breadcrumbs %}
+
+{% block content %}
+
+
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <strong class="card-title">Buy Product</strong>
+            </div>
+            <div class="card-body">
+                <!-- Credit Card -->
+                <div id="pay-invoice">
+                    <div class="card-body">
+                        <form action="{% url 'products' %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="name" class="control-label mb-1">Manufacturer Name</label>
+                                <select class="form-control org_data" name="org_data" id="org_data">
+                                    {% for org in org_data %}
+                                    <option value="{{ org.id }}">{{ org.org_name }}</option>
+                                    {% endfor %}
+                                    
+                            
+                                  </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="name" class="control-label mb-1">Product ID</label>
+                                <select class="tagging form-control qr_data"  name="qr_data" id="qr_data" multiple>
+                                    
+                                    
+                            
+                                  </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="qty" class="control-label mb-1">Qty</label>
+                                <input class="form-control" name="qty" type='number' min="1" max="10" data-val="true" data-val-required='Please enter Qty'>
+                            </div>
+                           
+                            <div>
+                                <button id="payment-button" type="submit" class="btn btn-lg btn-info btn-block">
+                                    <span id="payment-button-amount">Create Product</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div> <!-- .card -->
+
+    </div><!--/.col-->
+</div>
+
+
+<script>
+    $(".tagging").select2({
+        tags: true
+    });
+</script>
+
+<script>
+
+
+$(document).ready(function() {
+
+    $(".org_data").change(function(){
+        $('#qr_data').empty()
+        var org_id = $(this).val()
+        var token = '{{csrf_token}}'
+
+        fetch("{% url 'get-product' %}", {
+            method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',"X-CSRFToken":token
+                },
+                body: JSON.stringify({
+                   
+                    "org_id":org_id ,
+                    
+                                })
+                }).then(function(res){ return res.json(); })
+                .then(function(data){ 
+                    if(data.qr_data.length != 0){
+                    for(i=0;i<data.qr_data.length;i++){
+                    $('#qr_data').append(`<option value="">
+                                       ${data.qr_data[i].qr_id}
+                                  </option>`);
+
+                    }
+                }
+                else{
+
+                    console.log("00")
+                }
+
+                })
+        
+    })
+});
+</script>
+{% endblock content %}
